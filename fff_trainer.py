@@ -11,7 +11,7 @@ def train(net, trainloader, epochs):
     """Train the network on the training set."""
     # Define loss and optimizer
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 
     # Train the network for the given number of epochs
     for _ in range(epochs):
