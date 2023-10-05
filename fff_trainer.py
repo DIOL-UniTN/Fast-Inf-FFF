@@ -20,6 +20,8 @@ def train(net, trainloader, epochs):
             images, labels = images.to(DEVICE), labels.to(DEVICE)
             optimizer.zero_grad()
             loss = criterion(net(images), labels)
+            loss += net.fff.w1s.pow(2).sum()
+            loss += net.fff.w2s.pow(2).sum()
             loss.backward()
             optimizer.step()
 
@@ -50,7 +52,48 @@ class Net(torch.nn.Module):
 
     def forward(self, x):
         x = x.view(len(x), -1)
-        return self.fff(x)
+        x = self.fff(x)
+        x = torch.nn.functional.softmax(x, -1)
+        return x
 
     def parameters(self):
         return self.fff.parameters()
+
+
+class FF(torch.nn.Module):
+    def __init__(self, input_width, layer_width, output_width):
+        super(FF, self).__init__()
+        self.fc1 = torch.nn.Linear(input_width, layer_width)
+        self.fc2 = torch.nn.Linear(layer_width, output_width)
+
+    def forward(self, x):
+        x = x.view(len(x), -1)
+        x = torch.nn.functional.relu(self.fc1(x))
+        x = torch.nn.functional.softmax(self.fc2(x), -1)
+        return x
+
+    def parameters(self):
+        return [*self.fc1.parameters(), *self.fc2.parameters()]
+
+
+def compute_n_params(input_width: int, l_w: int, depth: int, output_width: int):
+    fff = Net(input_width, l_w, output_width, depth, 0, 0)
+    ff = FF(input_width, l_w, output_width)
+
+    n_ff = 0
+    n_fff = 0
+    for p in ff.parameters():
+        n_ff += p.numel()
+    for i, p in enumerate(fff.parameters()):
+        print(f"[{i}-th layer]: {p.shape}")
+        n_fff += p.numel()
+
+    print(f"FFF: {n_fff}\nFF: {n_ff}")
+
+
+def main():
+    typer.run(compute_n_params)
+
+
+if __name__ == "__main__":
+    main()

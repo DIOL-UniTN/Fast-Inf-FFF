@@ -1,7 +1,7 @@
 import typer
 import mlflow
 from tqdm import trange
-from fff_trainer import Net, train, test, DEVICE
+from fff_trainer import FF, train, test, DEVICE
 from torchvision.datasets import MNIST
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
@@ -26,13 +26,13 @@ def load_data():
     return trainloader, testloader, num_examples
 
 
-def main(leaf_width: int, depth: int, epochs: int):
+def main(layer_width: int, epochs: int):
     trainloader, testloader, _ = load_data()
-    net = Net(784, leaf_width, 10, depth, 0, 0).to(DEVICE)
+    net = FF(784, layer_width, 10).to(DEVICE)
 
     with mlflow.start_run():
-        mlflow.log_param("leaf_width", leaf_width)
-        mlflow.log_param("depth", depth)
+        mlflow.log_param("leaf_width", layer_width)
+        mlflow.log_param("depth", 1)
         mlflow.log_param("epochs", epochs)
 
         # Train the net and log on mlflow
@@ -45,15 +45,6 @@ def main(leaf_width: int, depth: int, epochs: int):
             mlflow.log_metric("train_loss", train_loss, step=i)
             mlflow.log_metric("test_accuracy", test_acc, step=i)
             mlflow.log_metric("test_loss", test_loss, step=i)
-
-        # Evaluation
-        net.eval()
-        train_loss, train_acc = test(net, trainloader)
-        test_loss, test_acc = test(net, testloader)
-        mlflow.log_metric("eval_train_accuracy", train_acc)
-        mlflow.log_metric("eval_train_loss", train_loss)
-        mlflow.log_metric("eval_test_accuracy", test_acc)
-        mlflow.log_metric("eval_test_loss", test_loss)
 
         # Log model
         mlflow.pytorch.log_model(net, "model")
