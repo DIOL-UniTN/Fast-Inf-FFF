@@ -26,7 +26,7 @@ def load_data():
     return trainloader, testloader, num_examples
 
 
-def main(leaf_width: int, depth: int, epochs: int):
+def main(leaf_width: int, depth: int, epochs: int, use_w_norm: bool):
     trainloader, testloader, _ = load_data()
     net = Net(784, leaf_width, 10, depth, 0, 0).to(DEVICE)
 
@@ -34,10 +34,11 @@ def main(leaf_width: int, depth: int, epochs: int):
         mlflow.log_param("leaf_width", leaf_width)
         mlflow.log_param("depth", depth)
         mlflow.log_param("epochs", epochs)
+        mlflow.log_param("use_w_norm", use_w_norm)
 
         # Train the net and log on mlflow
         for i in trange(epochs):
-            train(net, trainloader, 1)
+            train(net, trainloader, 1, use_w_norm=use_w_norm)
             train_loss, train_acc = test(net, trainloader)
             test_loss, test_acc = test(net, testloader)
 
