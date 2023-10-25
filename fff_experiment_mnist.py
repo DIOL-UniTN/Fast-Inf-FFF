@@ -35,6 +35,7 @@ def main(leaf_width: int, depth: int, epochs: int, norm_weight: float):
         mlflow.log_param("depth", depth)
         mlflow.log_param("epochs", epochs)
         mlflow.log_param("norm_weight", norm_weight)
+        mlflow.log_param("hardened", net.fff.train_hardened)
 
         # Train the net and log on mlflow
         for i in trange(epochs):
