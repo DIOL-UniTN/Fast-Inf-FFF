@@ -7,7 +7,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Training on {DEVICE}")
 
 
-def train(net, trainloader, epochs, use_w_norm=False):
+def train(net, trainloader, epochs, norm_weight=0.0):
     """Train the network on the training set."""
     # Define loss and optimizer
     criterion = torch.nn.CrossEntropyLoss()
@@ -20,9 +20,9 @@ def train(net, trainloader, epochs, use_w_norm=False):
             images, labels = images.to(DEVICE), labels.to(DEVICE)
             optimizer.zero_grad()
             loss = criterion(net(images), labels)
-            if use_w_norm:
-                loss += net.fff.w1s.pow(2).sum()
-                loss += net.fff.w2s.pow(2).sum()
+            if norm_weight != 0:
+                loss += norm_weight * net.fff.w1s.pow(2).sum()
+                loss += norm_weight * net.fff.w2s.pow(2).sum()
             loss.backward()
             optimizer.step()
 
@@ -49,7 +49,7 @@ def test(net, testloader):
 class Net(torch.nn.Module):
     def __init__(self, input_width, leaf_width, output_width, depth, dropout, region_leak):
         super(Net, self).__init__()
-        self.fff = FFF(input_width, leaf_width, output_width, depth, torch.nn.ReLU(), dropout, region_leak)
+        self.fff = FFF(input_width, leaf_width, output_width, depth, torch.nn.ReLU(), dropout, region_leak, train_hardened=True)
 
     def forward(self, x):
         x = x.view(len(x), -1)
