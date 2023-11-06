@@ -1,0 +1,5 @@
+outs:
+    - md5: 21b8a67e24bca2397fa4519b3f6a76c4.dir
+      size: 72442109
+      path: har
+      nfiles: 7
