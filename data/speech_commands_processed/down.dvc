@@ -1,0 +1,5 @@
+outs:
+    - md5: ba46697f9f2969d755bf1c85ccc08365.dir
+      size: 1888700
+      path: down
+      nfiles: 100
