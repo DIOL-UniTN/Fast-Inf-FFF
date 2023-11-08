@@ -1,5 +1,5 @@
 outs:
-    - md5: f84332cbce28082491e1dd028d2213fd.dir
-      size: 5733700
+    - md5: 3ac771d1cac9b463c557e50d5cde2206.dir
+      size: 7791400
       path: go
-      nfiles: 300
+      nfiles: 400
