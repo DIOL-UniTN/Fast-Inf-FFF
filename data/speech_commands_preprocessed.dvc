@@ -1,5 +1,5 @@
 outs:
-    - md5: 86e14f999a6167aab6b892cffb1ed6a4.dir
-      size: 33897231
+    - md5: d37157f1e353faa35f70790bd1d469f1.dir
+      size: 35684531
       path: speech_commands_preprocessed
-      nfiles: 1800
+      nfiles: 1900
