@@ -1,0 +1,5 @@
+outs:
+    - md5: 342ad59b010dfb53249cf12c90ea5ff3.dir
+      size: 1871800
+      path: go
+      nfiles: 100
