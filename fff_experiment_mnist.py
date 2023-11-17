@@ -8,7 +8,7 @@ import torchvision.transforms as transforms
 
 
 def load_data():
-    """Load CIFAR-10 (training and test set)."""
+    """Load MNIST (training and test set)."""
     transform = transforms.Compose(
         [
             transforms.ToTensor(),
