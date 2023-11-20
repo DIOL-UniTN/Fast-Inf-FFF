@@ -49,7 +49,7 @@ def test(net, testloader):
 class Net(torch.nn.Module):
     def __init__(self, input_width, leaf_width, output_width, depth, dropout, region_leak):
         super(Net, self).__init__()
-        self.fff = FFF(input_width, leaf_width, output_width, depth, torch.nn.ReLU(), dropout, train_hardened=True, region_leak=region_leak)
+        self.fff = FFF(input_width, leaf_width, output_width, depth, torch.nn.ReLU(), dropout, train_hardened=False, region_leak=region_leak)
 
     def forward(self, x):
         x = x.view(len(x), -1)
