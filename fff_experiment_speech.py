@@ -1,3 +1,4 @@
+import os
 import typer
 import pickle
 import mlflow
@@ -10,13 +11,30 @@ from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
 
 
+# class SpeechDataset(Dataset):
+#     def __init__(self, fold):
+#         self.feat_path = "data/speech_commands_preprocessed/"
+#         self.csv_path = f"data/speech_commands_preprocessed/sa_{fold}.csv"
+#         df = pd.read_csv(self.csv_path)
+#         self.info_list = df.values.tolist()
+#         del df
+
+#     def __len__(self):
+#         return len(self.info_list)
+
+#     def __getitem__(self, item):
+#         folder, name, label = self.info_list[item]
+#         feat_loc = os.path.join(self.feat_path, '\\' + str(folder), '{}.npy'.format(name.split(".")[0]))
+#         feat = np.load(feat_loc)
+#         return feat, label
+
 class SpeechDataset(Dataset):
     def __init__(self, fold="train"):
         df = pd.read_csv(f"data/speech_commands_preprocessed/sa_{fold}.csv")
         self.data = []
         self.labels = []
         for _, (dir, name, label) in df.iterrows():
-            self.data = np.load(f"{dir}/{name.replace('wav', 'npy')}")
+            self.data.append(np.load(f"data/speech_commands_preprocessed/{dir}/{name.replace('wav', 'npy')}"))
             self.labels.append(label)
         self.data = np.array(self.data)
         self.labels = np.array(self.labels)
