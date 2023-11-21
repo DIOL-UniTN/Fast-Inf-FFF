@@ -4,7 +4,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from analyze_trees import FFFWrapper
+from simplify_leaves_mnist import FFFWrapper
 from matplotlib import pyplot as plt
 
 
@@ -109,7 +109,7 @@ def make_program(run_id):
 
     params['NODE_WEIGHTS'] = node_weights.flatten()
     params['NODE_BIASES'] = node_biases.flatten()
-    params['FASTINFERENCE'] = np.array([-1 if x is None else x for x in fastinference])
+    params['FASTINFERENCE'] = np.array([-1 if x is None else int(x.argmax()) for x in fastinference])
     actual_leaves_weights = w1s[params['FASTINFERENCE'] == -1]
     actual_leaves_biases = b1s[params['FASTINFERENCE'] == -1]
     actual_leaves_out_weights = w2s[params['FASTINFERENCE'] == -1]

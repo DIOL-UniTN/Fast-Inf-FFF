@@ -36,7 +36,7 @@ class SpeechDataset(Dataset):
         for _, (dir, name, label) in df.iterrows():
             self.data.append(np.load(f"data/speech_commands_preprocessed/{dir}/{name.replace('wav', 'npy')}"))
             self.labels.append(label)
-        self.data = np.array(self.data)
+        self.data = np.array(self.data).astype(np.float32)
         self.labels = np.array(self.labels)
 
     def __len__(self):
