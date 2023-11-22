@@ -89,10 +89,9 @@ class Leaf(Node):
             return f"return {self._w1};\n"
         return get_output_code(self._w1, self._b1, self._w2, self._b2)
 
-def print_parameters(params, key, lines, line):
+def print_parameters(params, key, lines, line, flit):
     # TODO: the first check on the sparsity on the weight consider the non zero values of truncated leaves
     # it should count the nnz of only kept leaves
-    print(params[key].shape)
     
     weight = params[key]
     dim = len(weight.shape)
@@ -115,15 +114,25 @@ def print_parameters(params, key, lines, line):
         sparse = non_zero_values < ((size_requested - weight_depth) / 2)
     if (not sparse):
         # print the parameters as usal
+        lines.insert(
+            line,
+            "#define " + key + "_SPARSE " + str(0) + "\n"
+        )
+        line += 1
         line += 1
         
         param = weight
         if (key in ['LEAF_HIDDEN_WEIGHTS', 'LEAF_HIDDEN_BIASES', 'LEAF_OUTPUT_WEIGHTS', 'LEAF_OUTPUT_BIASES']):
             param = param[params['FASTINFERENCE'] == -1]
         param = param.flatten()
+        tmp = ""
+        if (flit and key not in ['FASTINFERENCE']):
+            tmp = ", ".join(["F_LIT(" + str(x) + ")" for x in param])
+        else:
+            tmp = ", ".join([str(x) for x in param])
         lines.insert(
             line,
-            ", ".join([str(x) for x in param])
+            tmp
         )
     else:
         # CSC or CSR format
@@ -163,17 +172,38 @@ def print_parameters(params, key, lines, line):
                     offset = 1
                     value_position += 1
             
+        tmp = ""
         # substitute the definition
         lines[line] = "#define " + key + "_NNZ " + str(actual_non_zero_values) + "\n"
+        line+=1
+        lines.insert(
+            line,
+            "#define " + key + "_DIM " + str(dim) + "\n"
+        )
+        line+=1
+        lines.insert(
+            line,
+            "#define " + key + "_SPARSE " + str(1) + "\n"
+        )
+        for d in range(0, dim):
+            line+=1
+            lines.insert(
+                line,
+                "#define " + key + "_DIM_" + str(d + 1) + " " + str(weight.shape[d]) + "\n"
+            )
         line+=1
         lines.insert(
             line,
             "__hifram fixed " + key + "_data[" + key + "_NNZ] = {\n"
         )
         line+=1
+        if flit:
+            tmp = ", ".join(["F_LIT(" + str(x) + ")" for x in leaves_values])
+        else:
+            tmp = ", ".join([str(x) for x in leaves_values])
         lines.insert(
             line,
-            ", ".join([str(x) for x in leaves_values])
+            tmp
         )
         line+=1
         line+=1
@@ -183,9 +213,13 @@ def print_parameters(params, key, lines, line):
             "\n__hifram fixed " + key + "_offset[" + key + "_NNZ] = {\n"
         )
         line+=1
+        if (flit and False):
+            tmp = ", ".join(["F_LIT(" + str(x) + ")" for x in leaves_offsets])
+        else:
+            tmp = ", ".join([str(x) for x in leaves_offsets])
         lines.insert(
             line,
-            ", ".join([str(x) for x in leaves_offsets])
+            tmp
         )
         line+=1
         lines.insert(
@@ -203,9 +237,13 @@ def print_parameters(params, key, lines, line):
             "\n__hifram fixed " + key + "_sizes[N_LEAVES + 1] = {\n"
         )
         line+=1
+        if (flit and False):
+            tmp = ", ".join(["F_LIT(" + str(x) + ")" for x in leaves_sizes])
+        else:
+            tmp = ", ".join([str(x) for x in leaves_sizes])
         lines.insert(
             line,
-            ", ".join([str(x) for x in leaves_sizes])
+            tmp
         )
         line+=1
         lines.insert(
@@ -218,7 +256,7 @@ def print_parameters(params, key, lines, line):
             "};\n\n"
         )
 
-def make_program(run_id):
+def make_program(run_id, flit=True):
     mlflow.artifacts.download_artifacts(run_id=run_id, dst_path=".")
     wrapped_model = pickle.load(open("./truncated_model.pkl", "rb"))
 
