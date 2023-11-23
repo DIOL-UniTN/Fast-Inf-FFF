@@ -89,9 +89,8 @@ class Leaf(Node):
             return f"return {self._w1};\n"
         return get_output_code(self._w1, self._b1, self._w2, self._b2)
 
-def print_parameters(params, key, lines, line, flit):
-    # TODO: the first check on the sparsity on the weight consider the non zero values of truncated leaves
-    # it should count the nnz of only kept leaves
+def print_parameters(params, key, lines, line, flit, skipTruncatedLeaves, sizes_print=False, index_print=True):
+    # the first check on the sparsity on the weight also consider the non zero values of truncated leaves
     
     weight = params[key]
     dim = len(weight.shape)
@@ -123,7 +122,8 @@ def print_parameters(params, key, lines, line, flit):
         
         param = weight
         if (key in ['LEAF_HIDDEN_WEIGHTS', 'LEAF_HIDDEN_BIASES', 'LEAF_OUTPUT_WEIGHTS', 'LEAF_OUTPUT_BIASES']):
-            param = param[params['FASTINFERENCE'] == -1]
+            if (skipTruncatedLeaves):
+                param = param[params['FASTINFERENCE'] == -1]
         param = param.flatten()
         tmp = ""
         if (flit and key not in ['FASTINFERENCE']):
@@ -138,27 +138,40 @@ def print_parameters(params, key, lines, line, flit):
         # CSC or CSR format
         leaves_values = np.empty([0], dtype=float)
         leaves_offsets = np.empty([0], dtype=int)
-        leaves_sizes = np.empty([first_dim], dtype=int)
-        
+        leaves_sizes = None
+        printed_dim = key + "_DIM_1"
+        if (sizes_print):
+            leaves_sizes = np.empty([first_dim], dtype=int)
+        elif(index_print):
+            leaves_sizes = np.zeros([1], dtype=int)
+            printed_dim += " + 1"
+            
         value_position = 0
-        
         actual_non_zero_values = 0
         
         for index, leaf_weight in enumerate(weight): # from 0 to first_dim
             
             if (key in ['LEAF_HIDDEN_WEIGHTS', 'LEAF_HIDDEN_BIASES', 'LEAF_OUTPUT_WEIGHTS', 'LEAF_OUTPUT_BIASES']):
                 # insert filters non zero values into the fitler sizes
-                if (params['FASTINFERENCE'][index] != -1):
+                if (params['FASTINFERENCE'][index] != -1 and skipTruncatedLeaves):
                     leaves_sizes[index] = 0
                     continue
             
             # insert filters non zero values into the fitler sizes
             non_zero_values_here = np.count_nonzero(leaf_weight)
-            leaves_sizes[index] = non_zero_values_here
             actual_non_zero_values += non_zero_values_here
             # flatten the filter
             flatten_leaf = leaf_weight.ravel()
             offset = 1
+            
+            if (sizes_print):
+                # _sizes[DIM_1] = for each node/leaf we save the number of NNZ contained
+                leaves_sizes[index] = non_zero_values_here
+            elif (index_print):
+                # _sizes[DIM_1 + 1] = for each node/leaf we save the index in _data array of the starting value
+                # _sizes from {0 up to NNZ}
+                leaves_sizes = np.append(leaves_sizes, actual_non_zero_values)
+            
             for value in flatten_leaf: # from 0 to (n_depth * n_height * n_width)
                 if (value == 0):
                     # increase offset
@@ -171,6 +184,7 @@ def print_parameters(params, key, lines, line, flit):
                     leaves_offsets[value_position] = offset
                     offset = 1
                     value_position += 1
+                
             
         tmp = ""
         # substitute the definition
@@ -197,6 +211,7 @@ def print_parameters(params, key, lines, line, flit):
             "__hifram fixed " + key + "_data[" + key + "_NNZ] = {\n"
         )
         line+=1
+        
         if flit:
             tmp = ", ".join(["F_LIT(" + str(x) + ")" for x in leaves_values])
         else:
@@ -234,7 +249,7 @@ def print_parameters(params, key, lines, line, flit):
         line+=1
         lines.insert(
             line,
-            "\n__hifram fixed " + key + "_sizes[N_LEAVES + 1] = {\n"
+            "\n__hifram fixed " + key + "_sizes[" + printed_dim + "] = {\n"
         )
         line+=1
         if (flit and False):
@@ -255,8 +270,8 @@ def print_parameters(params, key, lines, line, flit):
             line,
             "};\n\n"
         )
-
-def make_program(run_id, flit=True):
+    
+def make_program(wrapped_model, flit=True, skipTruncatedLeaves=False):
     mlflow.artifacts.download_artifacts(run_id=run_id, dst_path=".")
     wrapped_model = pickle.load(open("./truncated_model.pkl", "rb"))
 
@@ -318,7 +333,7 @@ def make_program(run_id, flit=True):
                     if f"fixed {key}" in lines[i]:
                         break
                     i += 1
-                print_parameters(params, key, lines, i)
+                print_parameters(params, key, lines, i, flit, skipTruncatedLeaves)
 
             f.writelines(lines)
     return wrapped_model
