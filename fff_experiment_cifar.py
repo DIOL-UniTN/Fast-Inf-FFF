@@ -1,57 +1,17 @@
-import os
-import torch
 import typer
-import pickle
 import mlflow
-import numpy as np
-import pandas as pd
 from tqdm import trange
 from fff_trainer import Net, train, test, DEVICE
-from torchvision.datasets import MNIST
-from torch.utils.data import DataLoader, Dataset
+from torchvision.datasets import MNIST, CIFAR10
+from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
 
-# class SpeechDataset(Dataset):
-#     def __init__(self, fold):
-#         self.feat_path = "data/speech_commands_preprocessed/"
-#         self.csv_path = f"data/speech_commands_preprocessed/sa_{fold}.csv"
-#         df = pd.read_csv(self.csv_path)
-#         self.info_list = df.values.tolist()
-#         del df
-
-#     def __len__(self):
-#         return len(self.info_list)
-
-#     def __getitem__(self, item):
-#         folder, name, label = self.info_list[item]
-#         feat_loc = os.path.join(self.feat_path, '\\' + str(folder), '{}.npy'.format(name.split(".")[0]))
-#         feat = np.load(feat_loc)
-#         return feat, label
-
-class SpeechDataset(Dataset):
-    def __init__(self, fold="train"):
-        df = pd.read_csv(f"data/speech_commands_preprocessed/sa_{fold}.csv")
-        self.data = []
-        self.labels = []
-        for _, (dir, name, label) in df.iterrows():
-            self.data.append(np.load(f"data/speech_commands_preprocessed/{dir}/{name.replace('wav', 'npy')}"))
-            self.labels.append(label)
-        self.data = np.array(self.data).astype(np.float32)
-        self.labels = np.array(self.labels)
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, index):
-        x = self.data[index]
-        y = self.labels[index]
-        return x, y
-
-
 def load_data():
-    trainset = SpeechDataset("train")
-    testset = SpeechDataset("test")
+    """Load CIFAR (training and test set)."""
+    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    trainset = CIFAR10(root='./data', train=True, download=True, transform=transform)
+    testset = CIFAR10(root='./data', train=False, download=True, transform=transform)
 
     # Select class to keep 
     trainloader = DataLoader(trainset, batch_size=1024, shuffle=True)
@@ -63,9 +23,9 @@ def load_data():
 
 def main(leaf_width: int, depth: int, epochs: int, norm_weight: float):
     trainloader, testloader, _ = load_data()
-    net = Net(65*65, leaf_width, 10, depth, 0, 0).to(DEVICE)
+    net = Net(32*32*3, leaf_width, 10, depth, 0, 0).to(DEVICE)
 
-    with mlflow.start_run(experiment_id="4"):
+    with mlflow.start_run():
         mlflow.log_param("leaf_width", leaf_width)
         mlflow.log_param("depth", depth)
         mlflow.log_param("epochs", epochs)
