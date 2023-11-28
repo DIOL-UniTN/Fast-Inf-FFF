@@ -1,7 +1,8 @@
+import torch
 import typer
 import mlflow
 from tqdm import trange
-from fff_trainer import Net, train, test, DEVICE
+from fff_trainer import Net, train, test, DEVICE, ConvFFF
 from torchvision.datasets import MNIST, CIFAR10
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
@@ -23,14 +24,14 @@ def load_data():
 
 def main(leaf_width: int, depth: int, epochs: int, norm_weight: float):
     trainloader, testloader, _ = load_data()
-    net = Net(32*32*3, leaf_width, 10, depth, 0, 0).to(DEVICE)
+    net = ConvFFF((3, 32, 32), leaf_width, 10, depth).to(DEVICE)
 
     with mlflow.start_run(experiment_id="8"):
         mlflow.log_param("leaf_width", leaf_width)
         mlflow.log_param("depth", depth)
         mlflow.log_param("epochs", epochs)
         mlflow.log_param("norm_weight", norm_weight)
-        mlflow.log_param("hardened", net.fff.train_hardened)
+        mlflow.log_param("hardened", False)
 
         # Train the net and log on mlflow
         for i in trange(epochs):
