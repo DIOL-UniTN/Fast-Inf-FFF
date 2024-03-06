@@ -8,7 +8,7 @@ import torchvision.transforms as transforms
 
 
 def load_data():
-    """Load CIFAR-10 (training and test set)."""
+    """Load MNIST (training and test set)."""
     transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -30,7 +30,7 @@ def main(layer_width: int, epochs: int):
     trainloader, testloader, _ = load_data()
     net = FF(784, layer_width, 10).to(DEVICE)
 
-    with mlflow.start_run():
+    with mlflow.start_run(experiment_id="17"):
         mlflow.log_param("leaf_width", layer_width)
         mlflow.log_param("depth", 1)
         mlflow.log_param("epochs", epochs)
