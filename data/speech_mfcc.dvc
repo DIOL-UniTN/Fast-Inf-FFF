@@ -1,0 +1,6 @@
+outs:
+- md5: aa3d97748acb7436b1c3332b8bb86561.dir
+  size: 129368611
+  nfiles: 38551
+  hash: md5
+  path: speech_mfcc
