@@ -12,30 +12,13 @@ from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
 
 
-# class SpeechDataset(Dataset):
-#     def __init__(self, fold):
-#         self.feat_path = "data/speech_mfcc/"
-#         self.csv_path = f"data/speech_mfcc/sa_{fold}.csv"
-#         df = pd.read_csv(self.csv_path)
-#         self.info_list = df.values.tolist()
-#         del df
-
-#     def __len__(self):
-#         return len(self.info_list)
-
-#     def __getitem__(self, item):
-#         folder, name, label = self.info_list[item]
-#         feat_loc = os.path.join(self.feat_path, '\\' + str(folder), '{}.npy'.format(name.split(".")[0]))
-#         feat = np.load(feat_loc)
-#         return feat, label
-
 class SpeechDataset(Dataset):
     def __init__(self, fold="train"):
-        df = pd.read_csv(f"data/speech_mfcc/sa_{fold}.csv")
+        df = pd.read_csv(f"data/speech_mfcc/speech_commands_preprocessed_mfcc/sa_{fold}.csv")
         self.data = []
         self.labels = []
         for _, (dir, name, label) in df.iterrows():
-            self.data.append(np.load(f"data/speech_mfcc/{dir}/{name.replace('wav', 'npy')}"))
+            self.data.append(np.load(f"data/speech_mfcc/speech_commands_preprocessed_mfcc/{dir}/{name.replace('wav', 'npy')}"))
             self.labels.append(label)
         self.data = np.array(self.data).astype(np.float32)
         self.labels = np.array(self.labels)
@@ -54,8 +37,8 @@ def load_data():
     testset = SpeechDataset("test")
 
     # Select class to keep 
-    trainloader = DataLoader(trainset, batch_size=1024, shuffle=True)
-    testloader = DataLoader(testset, batch_size=1024)
+    trainloader = DataLoader(trainset, batch_size=512, shuffle=True, num_workers=8)
+    testloader = DataLoader(testset, batch_size=512, num_workers=8)
 
     num_examples = {"trainset" : len(trainset), "testset" : len(testset)}
     return trainloader, testloader, num_examples
@@ -63,7 +46,7 @@ def load_data():
 
 def main(leaf_width: int, depth: int, epochs: int, norm_weight: float):
     trainloader, testloader, _ = load_data()
-    net = Net(65*65, leaf_width, 10, depth, 0, 0).to(DEVICE)
+    net = Net(13*61, leaf_width, 10, depth, 0, 0).to(DEVICE)
 
     with mlflow.start_run(experiment_id="18"):
         mlflow.log_param("leaf_width", leaf_width)
