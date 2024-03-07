@@ -10,11 +10,11 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Training on {DEVICE}")
 
 
-def train(net, trainloader, epochs, norm_weight=0.0):
+def train(net, trainloader, epochs, norm_weight=0.0, lr=1e-2, weight_decay=0.0):
     """Train the network on the training set."""
     # Define loss and optimizer
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(net.parameters(), lr=1e-2)
+    optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
 
     # Train the network for the given number of epochs
     for _ in range(epochs):
@@ -110,7 +110,7 @@ class Transformer(torch.nn.Module):
         super(Transformer, self).__init__()
         self._latent_size = latent_size
         self.sa = SelfAttention(latent_size, leaf_width, depth)
-        self.fff = FFF(latent_size, leaf_width, latent_size, depth, torch.nn.GeLU(), dropout=0, train_hardened=False, region_leak=0)
+        self.fff = FFF(latent_size, leaf_width, latent_size, depth, torch.nn.ReLU(), dropout=0, train_hardened=False, region_leak=0)
 
     def forward(self, x):
         # Normalize
@@ -519,12 +519,19 @@ class ConvFFF(torch.nn.Module):
 def compute_n_params(input_width: int, l_w: int, depth: int, output_width: int):
     fff = Net(input_width, l_w, output_width, depth, 0, 0)
     # fff = ViTFFF((3, 4, 4), 8, 4, 10, 2)
-    ff = FF(input_width, l_w, output_width)
-    fff = ConvFFF(
-            input_width=(3, 32, 32), leaf_width=4, output_width=10, depth=depth,
-            activation=torch.nn.ReLU(), dropout=0.0, train_hardened=False,
-            region_leak=0.0, usage_mode= 'none', conv_size=5, n_channels=3
+    # ff = FF(input_width, l_w, output_width)
+    ff = torch.nn.Sequential(
+        torch.nn.Conv2d(1, 20, 5),
+        torch.nn.Conv2d(20, 100, 3),
+        torch.nn.Linear(1600, 200),
+        torch.nn.Linear(200, 500),
+        torch.nn.Linear(500, 10),
     )
+    # fff = ConvFFF(
+    #         input_width=(3, 32, 32), leaf_width=4, output_width=10, depth=depth,
+    #         activation=torch.nn.ReLU(), dropout=0.0, train_hardened=False,
+    #         region_leak=0.0, usage_mode= 'none', conv_size=5, n_channels=3
+    # )
 
     n_ff = 0
     n_fff = 0

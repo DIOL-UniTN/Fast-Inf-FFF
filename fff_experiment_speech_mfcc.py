@@ -57,7 +57,7 @@ def main(leaf_width: int, depth: int, epochs: int, norm_weight: float):
 
         # Train the net and log on mlflow
         for i in trange(epochs):
-            train(net, trainloader, 1, norm_weight=norm_weight)
+            train(net, trainloader, 1, norm_weight=norm_weight, lr=1e-3, weight_decay=5e-5)
             train_loss, train_acc = test(net, trainloader)
             test_loss, test_acc = test(net, testloader)
 
