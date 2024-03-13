@@ -35,10 +35,10 @@ def load_data():
     num_examples = {"trainset" : len(trainset), "testset" : len(testset)}
     return trainloader, testloader, num_examples
 
-TEACHER_RUNIDS = {512: "8b0567b0f3914f45be24108ce6ea7bcc", # layer_width: run_id
-                  256: "568ddc007d95461896f8976c279f7434",
-                  128: "a2743fd29dee4ba3b9c5711306b96aad",
-                  64: "55bcd9b62dde43139fa9a37ca1aa4a7e",
+TEACHER_RUNIDS = {512: "571f19135a8e401d90f80c323b22b43c", # layer_width: run_id
+                  256: "05fb90f9fbe14808a14ebbdee8ac7283",
+                  128: "c769e55aa1054dfea657bffd04c7c118",
+                  64: "867f89a244d948b5a878718115a9562e",
                   }
 def main(layer_width: int, epochs: int, teacher_layer_width:int, kd_alpha:float, temp:float):
     trainloader, testloader, _ = load_data()

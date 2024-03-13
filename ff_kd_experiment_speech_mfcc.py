@@ -11,13 +11,14 @@ from torchvision.datasets import MNIST
 from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
 
+
 class SpeechDataset(Dataset):
     def __init__(self, fold="train"):
-        df = pd.read_csv(f"data/speech_mfcc/sa_{fold}.csv")
+        df = pd.read_csv(f"data/speech_mfcc/speech_commands_preprocessed_mfcc/sa_{fold}.csv")
         self.data = []
         self.labels = []
         for _, (dir, name, label) in df.iterrows():
-            self.data.append(np.load(f"data/speech_mfcc/{dir}/{name.replace('wav', 'npy')}"))
+            self.data.append(np.load(f"data/speech_mfcc/speech_commands_preprocessed_mfcc/{dir}/{name.replace('wav', 'npy')}"))
             self.labels.append(label)
         self.data = np.array(self.data).astype(np.float32)
         self.labels = np.array(self.labels)
@@ -43,13 +44,12 @@ def load_data():
     return trainloader, testloader, num_examples
 
 
-TEACHER_RUNIDS = {1024: "b18f83f31eab403a984c6247b4659b21", # layer_width: run_id
-                  512: "e3158575fc32488fbf779f40b2918d7b", # Only this changed w/o softmax
-                  256: "ed131afd277f472ca75c979047fd9429",
-                  128: "f29edbfa5ad241e483f79ec6130673ce",
-                  64: "c91c9e0fdd51486ca9e06ee858ed3d12",
-                  32: "1aaaa43771b0475f8ea6bf7d97892d46",
-                  # 2512: "4a83128b58954e30808b532781da778a", # version 2
+TEACHER_RUNIDS = {1024: "a483171232f74d839149a660e5894b79", # layer_width: run_id
+                  512: "2dc7f54291bd4d3096b38ee13d8bba82",
+                  256: "1136031da1b0469aa8fe3646e1b43059",
+                  128: "18f62875736c4088ad8b4b9b9455b4ae",
+                  64: "cd858401cf0a4992bc9f0cd65cb3aa47",
+                  32: "82dab690910e47f3b4a838745155c10f",
                   }
 def main(layer_width: int, epochs: int, teacher_layer_width:int, kd_alpha:float, temp:float):
     trainloader, testloader, _ = load_data()
