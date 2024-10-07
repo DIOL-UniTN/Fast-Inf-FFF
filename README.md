@@ -24,5 +24,6 @@ Note that, when norm_weight is set to `0`, the model is equivalent to a fast-fee
   year={2024},
   publisher = {Association for Computing Machinery},
   booktitle = {Proceedings of the 22nd ACM Conference on Embedded Networked Sensor Systems},
+  doi = {10.1145/3666025.3699335}
 }
 ```
