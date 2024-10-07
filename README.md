@@ -23,6 +23,6 @@ Note that, when norm_weight is set to `0`, the model is equivalent to a fast-fee
   author={Custode, Leonardo Lucio and Farina, Pietro and Yıldız, Eren and Kılıç, Renan Beran and Yıldırım, Kasım Sinan and Iacca, Giovanni},
   year={2024},
   publisher = {Association for Computing Machinery},
-  booktitle = {Proceedings of the 22th ACM Conference on Embedded Networked Sensor Systems},
+  booktitle = {Proceedings of the 22nd ACM Conference on Embedded Networked Sensor Systems},
 }
 ```
