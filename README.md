@@ -14,6 +14,7 @@ python fff_experiment_speech_mfcc.py <leaf_width> <depth> <epochs> <norm_weight>
 ```
 Note that, when norm_weight is set to `0`, the model is equivalent to a fast-feedforward network, while setting it to a value `> 0` makes the model will be trained with the L2 penalty as in the Fast-Inf paper. 
 
+Code, data, and results are available at: https://dagshub.com/leocus4/TinyFFF.
 
 ## To cite this code:
 
